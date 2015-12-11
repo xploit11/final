@@ -14,6 +14,7 @@
 main:    
     BL  _print_name     @ print programmer name
     BL  _print_prompt   @ print user prompt
+    MOV R0, #0
     BL  _writeloop      @ retrieve 10 user input values
     BL _arrayprint
     #BL  _calc_result    @ compute the sum, min, and max of the top 10 values on the stack
