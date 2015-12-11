@@ -48,7 +48,7 @@ _writeloop:
     LDR R1, =a_array        @ get address of a
     LSL R2, R0, #2          @ multiply index*4 to get array offset
     ADD R2, R1, R2          @ R2 now has the element address
-    STR R2, R9            @ write the address of a[i] to a[i]
+    STR R2, [R9]            @ write the address of a[i] to a[i]
     ADD R0, R0, #1          @ increment index
     B   _writeloop           @ branch to next loop iteration
 writedone:
