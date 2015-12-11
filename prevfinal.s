@@ -10,16 +10,16 @@
  
     .global main
     .func main
-   
+ 
 main:    
     BL  _print_name     @ print programmer name
     BL  _print_prompt   @ print user prompt
-    BL  _get_input      @ retrieve 10 user input values
+    BL  _writeloop      @ retrieve 10 user input values
     BL _arrayprint
     #BL  _calc_result    @ compute the sum, min, and max of the top 10 values on the stack
     #BL  _print_result   @ print print result
     B   _exit           @ branch to exit procedure with no return
-    
+ 
  _printf:
     PUSH {LR}               @ store the return address
     LDR R0, =printf_str     @ R0 contains formatted string address
@@ -31,29 +31,29 @@ main:
     LDR R0,=name_str     @ R0 contains formatted string address
     BL printf            @ call printf
     POP {PC}             @ return
-    
+ 
  _print_prompt:
     PUSH {LR}            @ store LR since printf call overwrites
     LDR R0,=prompt_str   @ R0 contains formatted string address
     BL printf            @ call printf
     POP {PC}             @ return
-    
-_get_input:
-    MOV R4, LR           @ store LR since _scanf call overwrites LR, R0, R1
-    MOV R5, #0           @ initialize loop counter
+ 
+_writeloop:
+    CMP R0, #10            @ check to see if we are done iterating
+    BEQ writedone           @ exit loop if done
+    PUSH {R0}
+    BL _scanf            @ get a number from console
+    MOV R9, R0
+    POP {R0}
     LDR R1, =a_array        @ get address of a
     LSL R2, R0, #2          @ multiply index*4 to get array offset
-    _loop1: 
-         ADD R2, R1, R2          @ R2 now has the element address
-    	    BL _scanf            @ get a number from console
-         STR R8, [R0]            @ write the address of a[i] to a[i]
-    	    ADD R2, R2, #4          @ R2 now has the element address
-    	    ADD R8, R8, #1          @ R2 now has the element address
-         ADD R5, R5, #1       @ increment loop counter
-         CMP R5, #10          @ check for end of loop
-         BNE _loop1           @ loop if necessary
-    MOV PC, R4           @ return
-    
+    ADD R2, R1, R2          @ R2 now has the element address
+    STR R2, R9            @ write the address of a[i] to a[i]
+    ADD R0, R0, #1          @ increment index
+    B   _writeloop           @ branch to next loop iteration
+writedone:
+    MOV R0, #0              @ initialze index variable
+
 _calc_result:
     MOV R5, #0           @ initialize loop counter
     POP {R1}             @ remove a value from the stack
@@ -72,7 +72,7 @@ _calc_result:
             CMP R5, #9          @ check for end of loop
             BNE _loop2           @ loop if necessary
     MOV PC, LR          @ return
-    
+ 
 _arrayprint:
     CMP R0, #10             @ check to see if we are done iterating
     BEQ arrayprintdone            @ exit loop if done
@@ -103,7 +103,7 @@ arrayprintdone:
     LDR R0,=result_str  @ R0 contains formatted string address
     BL printf           @ call printf
     POP {PC}            @ return
-    
+ 
 _exit:  
     MOV R7, #4          @ write syscall, 4
     MOV R0, #1          @ output stream to monitor, 1
@@ -112,7 +112,7 @@ _exit:
     SWI 0               @ execute syscall
     MOV R7, #1          @ terminate syscall, 1
     SWI 0               @ execute syscall
-    
+ 
 _scanf:
     PUSH {LR}               @ store LR since scanf call overwrites
     SUB SP, SP, #4          @ make room on stack
@@ -122,14 +122,13 @@ _scanf:
     LDR R0, [SP]            @ load value at SP into R0
     ADD SP, SP, #4          @ restore the stack pointer
     POP {PC}                @ return
-       
+ 
 .data
 .balign 4
 a_array:    .skip   40
 name_str:   .asciz  "Anish Timila: 1000929208 \n"
 prompt_str: .asciz  "Please enter 10 positive integers: \n"
 format_str: .asciz  "%d"
-printf_str: .asciz  "a[%d] = %d b= %d\n"
-result_str: .asciz  "Sum: %10d     Min: %10d     Max: %10d \n"
-debug_str:  .asciz  "R%-2d   0x%08X  %011d \n"
+printf_str: .asciz  "array_a[%d] = %d"
+#result_str: .asciz  "Sum: %10d     Min: %10d     Max: %10d \n"
 exit_str:   .ascii  "Terminating program.\n"
